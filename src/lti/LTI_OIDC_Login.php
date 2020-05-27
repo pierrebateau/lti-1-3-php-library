@@ -9,6 +9,9 @@ class LTI_OIDC_Login {
     private $cache;
     private $cookie;
 
+    private $nonce;
+    private $state;
+
     /**
      * Constructor
      *
@@ -27,6 +30,10 @@ class LTI_OIDC_Login {
             $cookie = new ImsCookie();
         }
         $this->cookie = $cookie;
+
+        // Generate the nonce and state
+        $this->nonce = uniqid('nonce-', true);
+        $this->state = str_replace('.', '_', uniqid('state-', true));
     }
 
     /**
@@ -61,14 +68,11 @@ class LTI_OIDC_Login {
          * Build OIDC Auth Response.
          */
 
-        // Generate State.
         // Set cookie (short lived)
-        $state = str_replace('.', '_', uniqid('state-', true));
-        $this->cookie->set_cookie(static::COOKIE_PREFIX.$state, $state, 60);
+        $this->cookie->set_cookie(static::COOKIE_PREFIX.$this->state, $this->state, 60);
 
-        // Generate Nonce.
-        $nonce = uniqid('nonce-', true);
-        $this->cache->cache_nonce($nonce);
+        // Cache the Nonce.
+        $this->cache->cache_nonce($this->nonce);
 
         // Build Response.
         $auth_params = [
@@ -78,8 +82,8 @@ class LTI_OIDC_Login {
             'prompt'        => 'none', // Don't prompt user on redirect.
             'client_id'     => $registration->get_client_id(), // Registered client id.
             'redirect_uri'  => $launch_url, // URL to return to after login.
-            'state'         => $state, // State to identify browser session.
-            'nonce'         => $nonce, // Prevent replay attacks.
+            'state'         => $this->state, // State to identify browser session.
+            'nonce'         => $this->nonce, // Prevent replay attacks.
             'login_hint'    => $request['login_hint'] // Login hint to identify platform session.
         ];
 
@@ -93,7 +97,14 @@ class LTI_OIDC_Login {
 
         // Return auth redirect.
         return new Redirect($auth_login_return_url, http_build_query($request));
+    }
 
+    public function getState() {
+        return $this->state;
+    }
+
+    public function getNonce() {
+        return $this->nonce;
     }
 
     protected function validate_oidc_login($request) {
