@@ -120,7 +120,7 @@ class LTI_OIDC_Login {
         }
 
         // Fetch Registration Details.
-        $registration = $this->db->find_registration_by_issuer($request['iss']);
+        $registration = $this->db->find_registration_by_issuer_and_client_id($request['iss'], $request['client_id']);
 
         // Check we got something.
         if (empty($registration)) {

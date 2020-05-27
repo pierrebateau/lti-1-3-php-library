@@ -38,7 +38,7 @@ Rather than dictating how this is store, the library instead provides an interfa
 The `LTI\Database` interface must be fully implemented for this to work.
 ```php
 class Example_Database implements LTI\Database {
-    public function find_registration_by_issuer($iss) {
+    public function find_registration_by_issuer_and_client_id($iss, $client_id) {
         ...
     }
     public function find_deployment($iss, $deployment_id) {
@@ -47,7 +47,7 @@ class Example_Database implements LTI\Database {
 }
 ```
 
-The `find_registration_by_issuer` method must return an `LTI\LTI_Registration`.
+The `find_registration_by_issuer_and_client_id` method must return an `LTI\LTI_Registration`.
 ```php
 return LTI\LTI_Registration::new()
     ->set_auth_login_url($auth_login_url)
@@ -71,7 +71,7 @@ Calls into the Library will require an instance of `LTI\Database` to be passed i
 A JWKS (JSON Web Key Set) endpoint can be generated for either an individual registration or from an array of `KID`s and private keys.
 ```php
 // From issuer
-LTI\JWKS_Endpoint::from_issuer(new Example_Database(), 'http://example.com')->output_jwks();
+LTI\JWKS_Endpoint::from_issuer_and_client_id(new Example_Database(), 'http://example.com', 'client_id')->output_jwks();
 // From registration
 LTI\JWKS_Endpoint::from_registration($registration)->output_jwks();
 // From array
