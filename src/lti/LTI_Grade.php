@@ -101,7 +101,7 @@ class LTI_Grade {
             "userId" => $this->user_id,
             "submissionReview" => $this->submission_review,
         ], function($item) {
-            return $item === null;
+            return $item !== null;
         }));
     }
 }
